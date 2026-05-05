@@ -1,120 +1,97 @@
-# Retail Analytics Project
+# Retail Analytics & Customer Segmentation
 
-This project implements a scalable retail analytics pipeline using Spark and a medallion architecture (Bronze → Silver → Gold). It transforms raw transactional data into analysis-ready datasets that support customer behavior analysis, BI reporting, feature engineering, and machine learning workflows.
+End-to-end retail analytics project using the Instacart dataset. The project builds a Spark-based medallion pipeline from raw transactional files into curated Silver and Gold tables for customer analytics, Power BI reporting, customer segmentation, and LLM/RAG-based natural-language analytics.
 
-The pipeline ensures data quality, reproducibility, and efficient downstream analytics, and leverages distributed processing (Spark) to handle large transactional datasets.
+## Tech Stack
 
----
+- Microsoft Fabric / Spark / PySpark
+- Bronze, Silver, and Gold medallion architecture
+- Python, Pandas
+- Power BI
+- KMeans clustering
+- Azure Machine Learning
+- Azure AI Foundry
+- LLM/RAG pipeline
 
-## What has been done so far
+## Pipeline
 
-### 1) Bronze ingestion (`01_data_loading.ipynb`)
-- Configures Spark and Lakehouse-style paths  
-- Reads source CSV files with inferred schema and headers  
-- Performs initial validation checks after ingestion  
-- Writes Bronze Delta tables  
+```text
+Raw Instacart CSVs
+        ↓
+Bronze Layer
+Raw ingested tables
+        ↓
+Silver Layer
+Cleaned, validated, joined order-line tables
+        ↓
+Gold Layer
+Customer and business-level analytical features
+        ↓
+Analytics Outputs
+EDA, clustering, R analysis, Power BI dashboards
+        ↓
+Azure ML / Azure AI Foundry
+RAG pipeline for natural-language querying over curated outputs
+```
 
----
+## Project Workflow
 
-### 2) Data validation + cleaning (`02_data_validation_and_cleaning.ipynb`)
-- Loads Bronze tables and validates schemas  
-- Fixes data type inconsistencies (e.g., product hierarchy keys)  
-- Runs SQL-based data quality checks:
-  - row counts  
-  - null checks  
-  - duplicate detection  
-  - referential integrity  
-  - range validation  
-- Performs exploratory analysis to validate behavioral patterns:
-  - orders per user  
-  - basket size  
-  - reorder behavior  
-- Builds a denormalized product hierarchy table  
-- Writes cleaned Silver tables  
+| Stage                 | File / Tooling                          | Purpose                                                                                            |
+| --------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Bronze ingestion      | `01_data_loading.ipynb`                 | Loads raw CSV files, validates initial schemas, and writes Bronze tables                           |
+| Silver validation     | `02_data_validation_and_cleaning.ipynb` | Cleans data, fixes type issues, checks nulls, duplicates, ranges, and table relationships          |
+| Silver order lines    | `03_silver_order_lines.ipynb`           | Builds transaction-level order-line datasets for feature engineering, and downstream analytics |
+| Gold features         | `04_gold_customer_features.ipynb`       | Creates customer and business-level analytical features                                            |
+| EDA and visualisation | `05_eda_and_visualization.ipynb`        | Performs behavioural analysis, visualisation, and exploratory summaries                            |
+| Power BI reporting    | Power BI                                | Presents curated analytics outputs through dashboard visuals and a semantic model                  |
+| Applied AI / RAG      | Azure ML / Azure AI Foundry             | Enables natural-language querying over project context and curated analytics outputs               |
 
----
+## Power BI Reporting Layer
 
-### 3) Silver transaction modeling (`03_silver_order_lines.ipynb`)
-- Builds `silver_order_lines_prior` (historical transaction dataset capturing prior user behavior)  
-- Builds `silver_order_lines_train` (supervised learning dataset for modelling reorder behaviour, with binary target `reordered`)  
-- Models transaction-level data in a fact-like structure suitable for aggregation and feature engineering  
-- Applies join optimizations:
-  - repartition by `order_id`  
-  - broadcast small product dimension  
-- Persists Silver datasets for downstream analytics and ML  
-- Structures outputs for BI consumption and reporting workflows  
+Power BI is used to present the curated analytics outputs through business-facing dashboards. The report focuses on product demand, aisle and department performance, order timing behaviour, and the semantic model used to connect the reporting tables.
 
----
+### Dashboard 1: Product, Aisle, and Department Analysis
 
-### 4) Gold marts (`04_gold_customer_features.ipynb`)
-- Implements Gold-layer business marts derived from Silver datasets  
-- Aggregates transactional data into business-facing analytical views  
-- Produces structured datasets for reporting, KPI tracking, and downstream consumption  
+This dashboard summarises which products, aisles, and departments dominate order volume. It supports retail questions such as which categories drive demand and which product groups appear most frequently in customer baskets.
 
----
+![Power BI product, aisle and department dashboard](docs/powerbi-visual1.png)
 
-### 5) In-depth EDA + visualization (`05_eda_and_visualization.ipynb`)
-- Performs advanced exploratory data analysis and visualization  
-- Extends beyond validation into behavioral profiling and trend analysis  
-- Supports interpretation of customer patterns and communication of insights for analytics and BI use  
+### Dashboard 2: Order Timing Analysis
 
----
+This dashboard analyses ordering behaviour across hours of the day and days of the week. It helps identify when customers are most active and how order volume changes across the weekly cycle.
 
-## Analytical use cases
+![Power BI order timing dashboard](docs/powerbi-visual2.png)
 
-The prepared datasets support the following analytical and modelling use cases:
+### Power BI Semantic Model
 
-- Customer behavior analysis (purchase frequency, basket size, reorder patterns)  
-- Feature engineering for machine learning models (e.g., reorder prediction)  
-- Customer segmentation and clustering  
-- Downstream BI and dashboarding workflows  
-- Evaluation of model performance on transaction-level data  
+The semantic model connects curated reporting tables so product hierarchy, order behaviour, and customer-level features can be analysed together. This makes the dashboard more than a set of isolated visuals: it provides a structured BI layer over the Silver and Gold outputs.
 
----
+![Power BI data model](docs/powerbi-data-model.png)
 
-## EDA approach
+## RAG Workflow
 
-Exploratory data analysis (EDA) is implemented at two levels:
+The implemented RAG layer uses project-specific context from:
 
-- **Foundational EDA** in `02_data_validation_and_cleaning.ipynb` for data profiling and validation  
-- **In-depth EDA** in `05_eda_and_visualization.ipynb` for deeper behavioral insights and visualization  
+- Gold-layer feature descriptions
+- Power BI dashboard summaries
+- customer segmentation outputs
+- medallion architecture documentation
+- analytical notes from the notebooks
 
-Foundational checks include:
+The retrieval step finds the most relevant context for a user query. The LLM then generates a response using that retrieved context.
 
-- Orders per user distribution  
-- Basket size distribution  
-- Reorder behavior distribution  
+This makes the project more than a static BI dashboard: it becomes an interactive analytics assistant for exploring the retail data pipeline and its outputs.
 
-These are used to validate data integrity and reasonableness prior to downstream modelling and reporting.
+## Current Status
 
----
+Completed:
 
-## Gold layer outputs
-
-Gold-layer marts are implemented and structured as business-facing analytical datasets, including:
-
-- **Customer-level marts** (order cadence, reorder propensity, lifetime metrics)  
-- **Product-level marts** (reorder rates, category performance)  
-- **Basket-level marts** (basket composition and size trends)  
-
-These marts are designed for direct use in BI tools, reporting, and advanced analytics.
-
----
-
-## Repository structure
-
-- `01_data_loading.ipynb` — Bronze ingestion pipeline  
-- `02_data_validation_and_cleaning.ipynb` — validation, cleaning, and Silver dimension tables  
-- `03_silver_order_lines.ipynb` — transaction-level Silver fact datasets  
-- `04_gold_customer_features.ipynb` — Gold-layer aggregated marts  
-- `05_eda_and_visualization.ipynb` — in-depth EDA and visualization  
-- `count_rows.py` — helper script to count CSV rows  
-- `check_all_csv.sh` — batch script for CSV validation  
-
----
-
-## Utility scripts
-
-### Count rows in one CSV
-```bash
-python3 count_rows.py /path/to/file.csv
+- Bronze ingestion
+- Silver validation and order-line modelling
+- Gold feature engineering
+- EDA and visualisation
+- customer segmentation
+- Power BI dashboard basic
+- Power BI semantic model basic
+- Azure ML experimentation layer
+- Azure AI Foundry LLM/RAG layer
