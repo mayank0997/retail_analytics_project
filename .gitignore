@@ -3,3 +3,4 @@ lakehouse_data
 retail_venv
 *.html
 *.Rmd
+.env
