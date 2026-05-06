@@ -70,17 +70,27 @@ The semantic model connects curated reporting tables so product hierarchy, order
 
 ## RAG Workflow
 
-The implemented RAG layer uses project-specific context from:
+The implemented retrieval-augmented workflow uses customer-level analytical outputs generated from the Gold layer of the pipeline.
 
-- Gold-layer feature descriptions
-- Power BI dashboard summaries
-- customer segmentation outputs
-- medallion architecture documentation
-- analytical notes from the notebooks
+The workflow currently includes:
 
-The retrieval step finds the most relevant context for a user query. The LLM then generates a response using that retrieved context.
+- Gold-layer customer analytical features
+- semantic customer behaviour summaries generated from structured Gold tables
+- sampled customer records prepared for embedding and retrieval
 
-This makes the project more than a static BI dashboard: it becomes an interactive analytics assistant for exploring the retail data pipeline and its outputs.
+Gold-layer customer records are transformed into semantic text chunks describing behavioural characteristics such as:
+
+- total orders
+- average basket size
+- reorder ratio
+- customer loyalty classification
+- shopping frequency
+
+Embeddings are generated using Azure OpenAI embedding models and indexed in Azure AI Search for vector similarity retrieval.
+
+For a user query, the retrieval step identifies the most semantically relevant customer chunks. These retrieved chunks are then provided to an LLM to generate a response grounded in the retrieved customer behaviour data.
+
+This extends the project beyond static analysis by demonstrating a retrieval-based workflow for querying customer-level retail analytics outputs with LLM assistance.
 
 ## Current Status
 
